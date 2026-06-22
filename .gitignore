@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+docker-compose.override.yml
+redis-data/
