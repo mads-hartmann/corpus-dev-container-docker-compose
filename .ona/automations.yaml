@@ -1,0 +1,42 @@
+tasks:
+  install-dependencies:
+    name: Install dependencies
+    description: Install the Python dependencies used by the application.
+    command: python -m pip install --user -r requirements.txt
+    triggeredBy:
+      - manual
+      - postDevcontainerStart
+      - prebuild
+
+  build:
+    name: Build
+    description: Build the Docker Compose application image.
+    command: docker compose build
+    triggeredBy:
+      - manual
+    dependsOn:
+      - install-dependencies
+
+  check:
+    name: Check
+    description: Validate Compose, compile the application, and exercise the web and Redis services.
+    command: make check
+    triggeredBy:
+      - manual
+    dependsOn:
+      - build
+
+services:
+  compose-app:
+    name: Compose app
+    description: Run the Flask application and Redis with Docker Compose.
+    triggeredBy:
+      - manual
+      - postEnvironmentStart
+    commands:
+      start: |
+        docker compose up &
+        gitpod environment port open 8000 --dont-wait --admission creator_only --name "Compose app"
+        wait
+      ready: curl -fsS http://localhost:8000/health
+      stop: docker compose down
