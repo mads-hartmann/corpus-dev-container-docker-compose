@@ -1,0 +1,39 @@
+tasks:
+  install-dependencies:
+    name: Install dependencies
+    command: python -m pip install --user -r requirements.txt
+    triggeredBy:
+      - manual
+      - postDevcontainerStart
+      - prebuild
+
+  build-containers:
+    name: Build containers
+    command: docker compose build
+    dependsOn:
+      - install-dependencies
+    triggeredBy:
+      - manual
+
+  check:
+    name: Check
+    command: make check
+    dependsOn:
+      - install-dependencies
+    triggeredBy:
+      - manual
+
+services:
+  web:
+    name: Web
+    commands:
+      start: |
+        make run &
+        service_pid=$!
+        gitpod environment port open 8000 --admission creator_only --name Web --protocol http
+        wait "$service_pid"
+      ready: curl -fsS http://localhost:8000/health
+      stop: docker compose down
+    triggeredBy:
+      - manual
+      - postEnvironmentStart
