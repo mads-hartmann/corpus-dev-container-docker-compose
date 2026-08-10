@@ -28,7 +28,7 @@ services:
     name: Web
     commands:
       start: |
-        make run &
+        docker compose up &
         service_pid=$!
         gitpod environment port open 8000 --admission creator_only --name Web --protocol http
         wait "$service_pid"
