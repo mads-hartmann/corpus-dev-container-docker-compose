@@ -1,0 +1,32 @@
+tasks:
+  installDeps:
+    name: Install dependencies
+    description: Install the Python dependencies required by the project.
+    command: python -m pip install -r requirements.txt
+    triggeredBy:
+      - manual
+      - postDevcontainerStart
+      - prebuild
+
+  check:
+    name: Check
+    description: Validate the Compose configuration and exercise the Flask and Redis services.
+    command: make check
+    triggeredBy:
+      - manual
+    dependsOn:
+      - installDeps
+
+services:
+  web:
+    name: Web
+    description: Run the Flask application with its Redis dependency through Docker Compose.
+    triggeredBy:
+      - manual
+      - postEnvironmentStart
+    commands:
+      start: |
+        ona environment port open 8000 --admission creator_only --name "Web"
+        docker compose up -d redis
+        exec docker compose run --rm --service-ports web flask run --debug --host 0.0.0.0
+      ready: curl -fsS http://localhost:8000/health
