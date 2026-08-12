@@ -1,0 +1,37 @@
+tasks:
+  install-dependencies:
+    name: Install dependencies
+    command: python -m pip install --user -r requirements.txt
+    triggeredBy:
+      - manual
+      - postDevcontainerStart
+      - prebuild
+
+  build:
+    name: Build Compose services
+    command: docker compose build
+    dependsOn:
+      - install-dependencies
+    triggeredBy:
+      - manual
+
+  check:
+    name: Run checks
+    command: ./scripts/check.sh
+    dependsOn:
+      - install-dependencies
+    triggeredBy:
+      - manual
+
+services:
+  app:
+    name: Flask app
+    description: Flask HTTP service and its Redis dependency
+    commands:
+      start: |
+        ona environment port open 8000 --admission creator_only --name app
+        docker compose up --build --remove-orphans
+      ready: curl -fsS http://localhost:8000/health
+    triggeredBy:
+      - manual
+      - postEnvironmentStart
