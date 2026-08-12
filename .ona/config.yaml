@@ -1,0 +1,33 @@
+services:
+  web:
+    name: Docker Compose web
+    description: Flask web service with its Redis dependency
+    triggeredBy:
+      - manual
+      - postEnvironmentStart
+    commands:
+      start: |
+        ona environment port open 8000 --admission creator_only --name "Docker Compose web" --protocol http
+        docker compose up --build
+      ready: curl -fsS http://localhost:8000/health
+      stop: docker compose down -v --remove-orphans
+
+tasks:
+  install-dependencies:
+    name: Install dependencies
+    description: Install the pinned Python dependencies for local development
+    triggeredBy:
+      - manual
+      - postDevcontainerStart
+      - prebuild
+    prebuildRequiresSuccess: true
+    command: python -m pip install --user -r requirements.txt
+
+  check:
+    name: Check
+    description: Build and verify the Compose application
+    triggeredBy:
+      - manual
+    dependsOn:
+      - install-dependencies
+    command: make check

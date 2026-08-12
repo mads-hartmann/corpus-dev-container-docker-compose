@@ -1,0 +1,8 @@
+{
+	"name": "Docker Compose Corpus Fixture",
+	"image": "mcr.microsoft.com/devcontainers/python:3.12",
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker": {}
+	},
+	"forwardPorts": [8000]
+}
