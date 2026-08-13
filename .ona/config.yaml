@@ -1,0 +1,36 @@
+tasks:
+  install-dependencies:
+    name: Install dependencies
+    command: python -m pip install --user -r requirements.txt
+    triggeredBy:
+      - manual
+      - postDevcontainerStart
+      - prebuild
+
+  build:
+    name: Build containers
+    command: docker compose build
+    dependsOn:
+      - install-dependencies
+    triggeredBy:
+      - manual
+
+  check:
+    name: Run checks
+    command: make check
+    dependsOn:
+      - build
+    triggeredBy:
+      - manual
+
+services:
+  application:
+    name: Application
+    commands:
+      start: |
+        ona environment port open 8000 --admission creator_only --name "Application"
+        docker compose up
+      ready: curl -fsS http://localhost:8000/health
+    triggeredBy:
+      - manual
+      - postEnvironmentStart
