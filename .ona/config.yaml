@@ -1,0 +1,28 @@
+tasks:
+  install-dependencies:
+    name: Install dependencies
+    command: docker compose build
+    triggeredBy:
+      - manual
+      - postDevcontainerStart
+      - prebuild
+
+  check:
+    name: Check
+    command: make check
+    dependsOn:
+      - install-dependencies
+    triggeredBy:
+      - manual
+
+services:
+  web:
+    name: Web
+    commands:
+      start: |
+        ona environment port open 8000 --admission creator_only --name "Web"
+        docker compose up
+      ready: curl -fsS http://localhost:8000/health
+    triggeredBy:
+      - manual
+      - postEnvironmentStart
