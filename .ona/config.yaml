@@ -1,0 +1,41 @@
+tasks:
+  install-dependencies:
+    name: Install dependencies
+    description: Install the pinned Python dependencies for local development
+    triggeredBy:
+      - manual
+      - postDevcontainerStart
+      - prebuild
+    command: python -m pip install --user -r requirements.txt
+
+  build:
+    name: Build Docker images
+    description: Build the Docker Compose application image
+    triggeredBy:
+      - manual
+    dependsOn:
+      - install-dependencies
+    command: docker compose build
+
+  check:
+    name: Run checks
+    description: Validate the Compose configuration and exercise the web service
+    triggeredBy:
+      - manual
+    dependsOn:
+      - build
+    command: make check
+
+services:
+  web:
+    name: Web application
+    description: Flask application with its Compose-managed Redis dependency
+    triggeredBy:
+      - manual
+      - postEnvironmentStart
+    commands:
+      start: |
+        ona environment port open 8000 --admission creator_only --name "Web application"
+        docker compose up web
+      ready: curl -fsS http://localhost:8000/health >/dev/null
+      stop: docker compose down
